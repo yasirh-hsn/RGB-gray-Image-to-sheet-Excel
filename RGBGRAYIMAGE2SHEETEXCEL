@@ -1,0 +1,36 @@
+import cv2
+import openpyxl
+import PySimpleGUI as sg
+
+sg.theme('SandyBeach')
+layout = [[sg.Text('Pilih file gambar:'), sg.Input(key='-IN FILE-'), sg.FileBrowse()],
+          [sg.Text('Silahkan pilih penyimpanan hasil:'), sg.Input(key='-OUT FOLDER-'), sg.FolderBrowse()],
+          [sg.Submit('Process'), sg.Cancel()]]
+window = sg.Window('Buat Piksel gambar di Excel (Yasir Hasan-Indonesia)', layout)
+event, values = window.read()
+
+if event == sg.WINDOW_CLOSED or event == 'Cancel':
+    exit()
+img = cv2.imread(values['-IN FILE-'])
+
+if img is None:
+    sg.popup_error('File tidak dapat dibaca atau tidak didukung.')
+    exit()
+
+workbook = openpyxl.Workbook()
+sheets = {'Red': workbook.create_sheet('Red'),
+          'Green': workbook.create_sheet('Green'),
+          'Blue': workbook.create_sheet('Blue'),
+          'Grayscale': workbook.create_sheet('Grayscale')}
+
+for x in range(img.shape[1]):
+    for y in range(img.shape[0]):
+        b, g, r = img[y,x] # ambil nilai BGR
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)[y,x] 
+        sheets['Red'].cell(row=y+1, column=x+1, value=r)
+        sheets['Green'].cell(row=y+1, column=x+1, value=g)
+        sheets['Blue'].cell(row=y+1, column=x+1, value=b)
+        sheets['Grayscale'].cell(row=y+1, column=x+1, value=gray)
+
+workbook.save(values['-OUT FOLDER-'] + '/File_Hasil.xlsx')
+window.close()
